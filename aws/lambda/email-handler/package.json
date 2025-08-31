@@ -1,0 +1,12 @@
+{
+  "name": "email-handler",
+  "version": "1.0.0",
+  "description": "",
+  "dependencies": {
+    "@aws-sdk/client-sesv2": "^3.400.0"
+  },
+  "devDependencies": {
+    "@types/aws-lambda": "^8.10.0",
+    "typescript": "^4.9.0"
+  }
+}

@@ -1,0 +1,36 @@
+{
+  "version": "48.0.0",
+  "files": {
+    "06d9b33e84ecfa1dc2acee27be110c734a42934cf7fd349555721a8187db4c48": {
+      "displayName": "EmailHandler/Code",
+      "source": {
+        "path": "asset.06d9b33e84ecfa1dc2acee27be110c734a42934cf7fd349555721a8187db4c48",
+        "packaging": "zip"
+      },
+      "destinations": {
+        "current_account-us-east-1-6a6d8506": {
+          "bucketName": "cdk-hnb659fds-assets-${AWS::AccountId}-us-east-1",
+          "objectKey": "06d9b33e84ecfa1dc2acee27be110c734a42934cf7fd349555721a8187db4c48.zip",
+          "region": "us-east-1",
+          "assumeRoleArn": "arn:${AWS::Partition}:iam::${AWS::AccountId}:role/cdk-hnb659fds-file-publishing-role-${AWS::AccountId}-us-east-1"
+        }
+      }
+    },
+    "b19a8d01a2a469f963d7d7929fbd425c373bd45fb4d5baa6008ed97d4df0e872": {
+      "displayName": "CoralEmailStack Template",
+      "source": {
+        "path": "CoralEmailStack.template.json",
+        "packaging": "file"
+      },
+      "destinations": {
+        "current_account-us-east-1-0132ea1d": {
+          "bucketName": "cdk-hnb659fds-assets-${AWS::AccountId}-us-east-1",
+          "objectKey": "b19a8d01a2a469f963d7d7929fbd425c373bd45fb4d5baa6008ed97d4df0e872.json",
+          "region": "us-east-1",
+          "assumeRoleArn": "arn:${AWS::Partition}:iam::${AWS::AccountId}:role/cdk-hnb659fds-file-publishing-role-${AWS::AccountId}-us-east-1"
+        }
+      }
+    }
+  },
+  "dockerImages": {}
+}

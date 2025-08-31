@@ -1,0 +1,286 @@
+{
+ "Resources": {
+  "EmailHandlerServiceRole5532AF63": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+       ]
+      ]
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "CoralEmailStack/EmailHandler/ServiceRole/Resource"
+   }
+  },
+  "EmailHandlerServiceRoleDefaultPolicy897B1A65": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": [
+        "ses:SendEmail",
+        "ses:SendRawEmail"
+       ],
+       "Effect": "Allow",
+       "Resource": "*"
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "EmailHandlerServiceRoleDefaultPolicy897B1A65",
+    "Roles": [
+     {
+      "Ref": "EmailHandlerServiceRole5532AF63"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "CoralEmailStack/EmailHandler/ServiceRole/DefaultPolicy/Resource"
+   }
+  },
+  "EmailHandler7CB4CA8F": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Code": {
+     "S3Bucket": {
+      "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-us-east-1"
+     },
+     "S3Key": "06d9b33e84ecfa1dc2acee27be110c734a42934cf7fd349555721a8187db4c48.zip"
+    },
+    "Environment": {
+     "Variables": {
+      "NODE_OPTIONS": "--enable-source-maps"
+     }
+    },
+    "Handler": "index.handler",
+    "Role": {
+     "Fn::GetAtt": [
+      "EmailHandlerServiceRole5532AF63",
+      "Arn"
+     ]
+    },
+    "Runtime": "nodejs18.x",
+    "Timeout": 10
+   },
+   "DependsOn": [
+    "EmailHandlerServiceRoleDefaultPolicy897B1A65",
+    "EmailHandlerServiceRole5532AF63"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "CoralEmailStack/EmailHandler/Resource",
+    "aws:asset:path": "asset.06d9b33e84ecfa1dc2acee27be110c734a42934cf7fd349555721a8187db4c48",
+    "aws:asset:is-bundled": true,
+    "aws:asset:property": "Code"
+   }
+  },
+  "EmailApi51CACE34": {
+   "Type": "AWS::ApiGatewayV2::Api",
+   "Properties": {
+    "CorsConfiguration": {
+     "AllowHeaders": [
+      "Content-Type",
+      "Authorization"
+     ],
+     "AllowMethods": [
+      "GET",
+      "POST",
+      "OPTIONS"
+     ],
+     "AllowOrigins": [
+      "http://angular.coralworld.eu",
+      "http://localhost:3000"
+     ],
+     "MaxAge": 864000
+    },
+    "Description": "Coral Club Contact Form API",
+    "Name": "EmailApi",
+    "ProtocolType": "HTTP"
+   },
+   "Metadata": {
+    "aws:cdk:path": "CoralEmailStack/EmailApi/Resource"
+   }
+  },
+  "EmailApiDefaultStageFEA608FF": {
+   "Type": "AWS::ApiGatewayV2::Stage",
+   "Properties": {
+    "ApiId": {
+     "Ref": "EmailApi51CACE34"
+    },
+    "AutoDeploy": true,
+    "StageName": "$default"
+   },
+   "Metadata": {
+    "aws:cdk:path": "CoralEmailStack/EmailApi/DefaultStage/Resource"
+   }
+  },
+  "EmailApiPOSTcontactEmailIntegration9F562C0F": {
+   "Type": "AWS::ApiGatewayV2::Integration",
+   "Properties": {
+    "ApiId": {
+     "Ref": "EmailApi51CACE34"
+    },
+    "IntegrationType": "AWS_PROXY",
+    "IntegrationUri": {
+     "Fn::GetAtt": [
+      "EmailHandler7CB4CA8F",
+      "Arn"
+     ]
+    },
+    "PayloadFormatVersion": "2.0"
+   },
+   "Metadata": {
+    "aws:cdk:path": "CoralEmailStack/EmailApi/POST--contact/EmailIntegration/Resource"
+   }
+  },
+  "EmailApiPOSTcontactEmailIntegrationPermissionDBF88408": {
+   "Type": "AWS::Lambda::Permission",
+   "Properties": {
+    "Action": "lambda:InvokeFunction",
+    "FunctionName": {
+     "Fn::GetAtt": [
+      "EmailHandler7CB4CA8F",
+      "Arn"
+     ]
+    },
+    "Principal": "apigateway.amazonaws.com",
+    "SourceArn": {
+     "Fn::Join": [
+      "",
+      [
+       "arn:",
+       {
+        "Ref": "AWS::Partition"
+       },
+       ":execute-api:us-east-1:",
+       {
+        "Ref": "AWS::AccountId"
+       },
+       ":",
+       {
+        "Ref": "EmailApi51CACE34"
+       },
+       "/*/*/contact"
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "CoralEmailStack/EmailApi/POST--contact/EmailIntegration-Permission"
+   }
+  },
+  "EmailApiPOSTcontactB9D2C7E9": {
+   "Type": "AWS::ApiGatewayV2::Route",
+   "Properties": {
+    "ApiId": {
+     "Ref": "EmailApi51CACE34"
+    },
+    "AuthorizationType": "NONE",
+    "RouteKey": "POST /contact",
+    "Target": {
+     "Fn::Join": [
+      "",
+      [
+       "integrations/",
+       {
+        "Ref": "EmailApiPOSTcontactEmailIntegration9F562C0F"
+       }
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "CoralEmailStack/EmailApi/POST--contact/Resource"
+   }
+  },
+  "CDKMetadata": {
+   "Type": "AWS::CDK::Metadata",
+   "Properties": {
+    "Analytics": "v2:deflate64:H4sIAAAAAAAA/12PzWrDQAyEnyX3tZrYl1yTQGkvbXEewChrxcg/u8bSxgTjdw+7pj309M2I0SDlkB8K2O9wlszWXdbzDZarou0MzlItPQ63Givna2oFvhLeg7PK3hnGAZbS92Qud5f443u2z2g3tRopKhQhFThFGCngHGxHekYhs9XDcrm7v9a4TNPAIuzdanDkBpVmfD5yWD5Ux9PIMRQR7VWxSRdsIo5KH3RTn06pmfC3+J9NuXU1JYkPkyWTbow97JoY+A46Bl1N/B9aeXvkORyOsN+1wpxNwSkPBOXGF0N3HadMAQAA"
+   },
+   "Metadata": {
+    "aws:cdk:path": "CoralEmailStack/CDKMetadata/Default"
+   }
+  }
+ },
+ "Outputs": {
+  "ApiUrl": {
+   "Description": "Contact Form API Gateway URL",
+   "Value": {
+    "Fn::Join": [
+     "",
+     [
+      "https://",
+      {
+       "Ref": "EmailApi51CACE34"
+      },
+      ".execute-api.us-east-1.",
+      {
+       "Ref": "AWS::URLSuffix"
+      },
+      "/"
+     ]
+    ]
+   },
+   "Export": {
+    "Name": "CoralEmailApiUrl"
+   }
+  }
+ },
+ "Parameters": {
+  "BootstrapVersion": {
+   "Type": "AWS::SSM::Parameter::Value<String>",
+   "Default": "/cdk-bootstrap/hnb659fds/version",
+   "Description": "Version of the CDK Bootstrap resources in this environment, automatically retrieved from SSM Parameter Store. [cdk:skip]"
+  }
+ },
+ "Rules": {
+  "CheckBootstrapVersion": {
+   "Assertions": [
+    {
+     "Assert": {
+      "Fn::Not": [
+       {
+        "Fn::Contains": [
+         [
+          "1",
+          "2",
+          "3",
+          "4",
+          "5"
+         ],
+         {
+          "Ref": "BootstrapVersion"
+         }
+        ]
+       }
+      ]
+     },
+     "AssertDescription": "CDK bootstrap stack version 6 required. Please run 'cdk bootstrap' with a recent version of the CDK CLI."
+    }
+   ]
+  }
+ }
+}
